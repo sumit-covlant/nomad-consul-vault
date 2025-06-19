@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nomad, Consul & Vault Learning Guide</title>
+    <link rel="icon" type="image/png" href="/covlant_icon.png" sizes="32x32" />
+
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css">
+    <style>
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 4rem;
+        }
+        .sidebar {
+            height: calc(100vh - 4rem);
+            position: sticky;
+            top: 4rem;
+            width: 25%;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            z-index: 30;
+        }
+        .sidebar-content {
+            padding: 1rem;
+        }
+        .content {
+            width: 75%;
+            padding: 2rem;
+        }
+        pre {
+            background: #181818 !important;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            padding: 1rem !important;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+        }
+        .prose pre {
+            background: #2a2a2a !important;
+            color: #fff;
+            padding: 1rem !important;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        .prose code {
+            background: #676666;
+            color: #faf8f8;
+            font-weight: bold;
+            padding: 0.2em 0.4em;
+            border-radius: 0.3em;
+        }
+        .prose pre code {
+            background: none;
+            padding: 0;
+        }
+        .prose h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #5a55f5;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5em;
+        }
+        .prose h2 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-top: 1.5em;
+            margin-bottom: 0.75em;
+        }
+        .prose h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-top: 1.25em;
+            margin-bottom: 0.5em;
+        }
+        .prose h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.5em;
+            margin: 1em 0;
+        }
+        .prose li {
+            margin: 0.5em 0;
+        }
+        .prose p {
+            margin: 1em 0;
+            line-height: 1.6;
+        }
+        .section {
+            scroll-margin-top: 2rem;
+            position: relative;
+        }
+        .section:focus {
+            outline: none;
+        }
+        .active-section {
+            border-left: 2px solid #cac8c9;
+            border-radius: 0.5rem;
+            padding-left: 0.5rem;
+            background-color: #f8f9ff;
+        }
+        .nav-link.active {
+            color: #1f2937 !important;
+            font-weight: 600;
+            background-color: #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            margin: -0.5rem;
+        }
+        .mobile-menu-button {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .mobile-menu-button {
+                display: block;
+            }
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                width: 100%;
+                background: white;
+                z-index: 40;
+                padding: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                overflow-y: auto;
+            }
+            .sidebar.active {
+                left: 0;
+            }
+            .content {
+                width: 100%;
+                padding: 1rem;
+            }
+            .prose h1 {
+                font-size: 1.875rem;
+            }
+            .prose h2 {
+                font-size: 1.5rem;
+            }
+            .prose h3 {
+                font-size: 1.25rem;
+            }
+            .prose h4 {
+                font-size: 1.125rem;
+            }
+            pre {
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-lg fixed w-full top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl md:text-2xl font-extrabold bg-gradient-to-r from-blue-500 via-green-500 to-yellow-500 bg-clip-text text-transparent" style="letter-spacing: 1px;">
+                        Nomad, Consul &amp; Vault Learning Guide
+                    </h1>
+                </div>
+                <button class="mobile-menu-button p-2 rounded-md text-gray-600 hover:text-gray-900 focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex pt-8">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-content">
+                <ul class="space-y-2">
+                    <li><a href="#" data-section="prerequisites_1_docker" class="nav-link prerequisites-link text-blue-600 hover:text-blue-800">0_prerequisites/1_docker</a></li>
+                    <li><a href="#" data-section="prerequisites_2_linux" class="nav-link prerequisites-link text-blue-600 hover:text-blue-800">0_prerequisites/2_linux</a></li>
+                    <li><a href="#" data-section="prerequisites_3_networking" class="nav-link prerequisites-link text-blue-600 hover:text-blue-800">0_prerequisites/3_networking</a></li>
+                    <li><a href="#" data-section="prerequisites_4_container_orchestration" class="nav-link prerequisites-link text-blue-600 hover:text-blue-800">0_prerequisites/4_container_orchestration</a></li>
+                    <li><a href="#" data-section="prerequisites_5_service_discovery_secrets" class="nav-link prerequisites-link text-blue-600 hover:text-blue-800">0_prerequisites/5_service_discovery_secrets</a></li>
+                    <li><a href="#" data-section="nomad_1_nomad_basics" class="nav-link nomad-link text-green-600 hover:text-green-800">1_nomad/1_nomad_basics</a></li>
+                    <li><a href="#" data-section="nomad_2_nomad_cli_and_api" class="nav-link nomad-link text-green-600 hover:text-green-800">1_nomad/2_nomad_cli_and_api</a></li>
+                    <li><a href="#" data-section="nomad_3_nomad_job_types" class="nav-link nomad-link text-green-600 hover:text-green-800">1_nomad/3_nomad_job_types</a></li>
+                    <li><a href="#" data-section="nomad_4_nomad_advanced_features" class="nav-link nomad-link text-green-600 hover:text-green-800">1_nomad/4_nomad_advanced_features</a></li>
+                    <li><a href="#" data-section="nomad_5_nomad_production_setup" class="nav-link nomad-link text-green-600 hover:text-green-800">1_nomad/5_nomad_production_setup</a></li>
+                    <li><a href="#" data-section="consul_1_consul_basics" class="nav-link consul-link text-purple-600 hover:text-purple-800">2_consul/1_consul_basics</a></li>
+                    <li><a href="#" data-section="consul_2_consul_service_discovery" class="nav-link consul-link text-purple-600 hover:text-purple-800">2_consul/2_consul_service_discovery</a></li>
+                    <li><a href="#" data-section="consul_3_consul_connect" class="nav-link consul-link text-purple-600 hover:text-purple-800">2_consul/3_consul_connect</a></li>
+                    <li><a href="#" data-section="consul_4_consul_advanced_features" class="nav-link consul-link text-purple-600 hover:text-purple-800">2_consul/4_consul_advanced_features</a></li>
+                    <li><a href="#" data-section="consul_5_consul_production_setup" class="nav-link consul-link text-purple-600 hover:text-purple-800">2_consul/5_consul_production_setup</a></li>
+                    <li><a href="#" data-section="vault_1_vault_basics" class="nav-link vault-link text-yellow-600 hover:text-yellow-800">3_vault/1_vault_basics</a></li>
+                    <li><a href="#" data-section="vault_2_vault_core_concepts" class="nav-link vault-link text-yellow-600 hover:text-yellow-800">3_vault/2_vault_core_concepts</a></li>
+                    <li><a href="#" data-section="vault_3_vault_cli_and_api" class="nav-link vault-link text-yellow-600 hover:text-yellow-800">3_vault/3_vault_cli_and_api</a></li>
+                    <li><a href="#" data-section="vault_4_vault_dynamic_secrets" class="nav-link vault-link text-yellow-600 hover:text-yellow-800">3_vault/4_vault_dynamic_secrets</a></li>
+                    <li><a href="#" data-section="vault_5_vault_advanced_features" class="nav-link vault-link text-yellow-600 hover:text-yellow-800">3_vault/5_vault_advanced_features</a></li>
+                    <li><a href="#" data-section="vault_6_vault_production_setup" class="nav-link vault-link text-yellow-600 hover:text-yellow-800">3_vault/6_vault_production_setup</a></li>
+                    <li><a href="#" data-section="combined_1_nomad_consul" class="nav-link combined-link text-teal-600 hover:text-teal-800">4_combined_use_cases/1_nomad_consul</a></li>
+                    <li><a href="#" data-section="combined_2_nomad_vault" class="nav-link combined-link text-teal-600 hover:text-teal-800">4_combined_use_cases/2_nomad_vault</a></li>
+                    <li><a href="#" data-section="combined_3_consul_vault" class="nav-link combined-link text-teal-600 hover:text-teal-800">4_combined_use_cases/3_consul_vault</a></li>
+                    <li><a href="#" data-section="combined_4_nomad_consul_vault" class="nav-link combined-link text-teal-600 hover:text-teal-800">4_combined_use_cases/4_nomad_consul_vault</a></li>
+                    <li><a href="#" data-section="local_0_learning_flow" class="nav-link local-link text-pink-600 hover:text-pink-800">5_local_development/0_learning_flow</a></li>
+                    <li><a href="#" data-section="local_1_quick_start" class="nav-link local-link text-pink-600 hover:text-pink-800">5_local_development/1_quick_start</a></li>
+                    <li><a href="#" data-section="local_2_vault_basics" class="nav-link local-link text-pink-600 hover:text-pink-800">5_local_development/2_vault_basics</a></li>
+                    <li><a href="#" data-section="local_3_consul_service_discovery" class="nav-link local-link text-pink-600 hover:text-pink-800">5_local_development/3_consul_service_discovery</a></li>
+                    <li><a href="#" data-section="local_4_nomad_jobs" class="nav-link local-link text-pink-600 hover:text-pink-800">5_local_development/4_nomad_jobs</a></li>
+                    <li><a href="#" data-section="local_5_full_integration" class="nav-link local-link text-pink-600 hover:text-pink-800">5_local_development/5_full_integration</a></li>
+                    <li><a href="#" data-section="local_6_advanced_features" class="nav-link local-link text-pink-600 hover:text-pink-800">5_local_development/6_advanced_features</a></li>
+                    <li><a href="#" data-section="local_7_production_considerations" class="nav-link local-link text-pink-600 hover:text-pink-800">5_local_development/7_production_considerations</a></li>
+                    <li><a href="#" data-section="local_8_troubleshooting" class="nav-link local-link text-pink-600 hover:text-pink-800">5_local_development/8_troubleshooting</a></li>
+                    <li><a href="#" data-section="local_9_sample_applications" class="nav-link local-link text-pink-600 hover:text-pink-800">5_local_development/9_sample_applications</a></li>
+                    <li><a href="#" data-section="commands_reference" class="nav-link root-link text-gray-700 hover:text-gray-900">commands_reference</a></li>
+                    <li><a href="#" data-section="readme" class="nav-link root-link text-gray-700 hover:text-gray-900">readme</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div id="go-section-prerequisites_1_docker" class="mb-12 section" data-section="prerequisites_1_docker">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-prerequisites_2_linux" class="mb-12 section" data-section="prerequisites_2_linux">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-prerequisites_3_networking" class="mb-12 section" data-section="prerequisites_3_networking">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-prerequisites_4_container_orchestration" class="mb-12 section" data-section="prerequisites_4_container_orchestration">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-prerequisites_5_service_discovery_secrets" class="mb-12 section" data-section="prerequisites_5_service_discovery_secrets">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-nomad_1_nomad_basics" class="mb-12 section" data-section="nomad_1_nomad_basics">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-nomad_2_nomad_cli_and_api" class="mb-12 section" data-section="nomad_2_nomad_cli_and_api">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-nomad_3_nomad_job_types" class="mb-12 section" data-section="nomad_3_nomad_job_types">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-nomad_4_nomad_advanced_features" class="mb-12 section" data-section="nomad_4_nomad_advanced_features">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-nomad_5_nomad_production_setup" class="mb-12 section" data-section="nomad_5_nomad_production_setup">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-consul_1_consul_basics" class="mb-12 section" data-section="consul_1_consul_basics">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-consul_2_consul_service_discovery" class="mb-12 section" data-section="consul_2_consul_service_discovery">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-consul_3_consul_connect" class="mb-12 section" data-section="consul_3_consul_connect">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-consul_4_consul_advanced_features" class="mb-12 section" data-section="consul_4_consul_advanced_features">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-consul_5_consul_production_setup" class="mb-12 section" data-section="consul_5_consul_production_setup">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-vault_1_vault_basics" class="mb-12 section" data-section="vault_1_vault_basics">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-vault_2_vault_core_concepts" class="mb-12 section" data-section="vault_2_vault_core_concepts">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-vault_3_vault_cli_and_api" class="mb-12 section" data-section="vault_3_vault_cli_and_api">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-vault_4_vault_dynamic_secrets" class="mb-12 section" data-section="vault_4_vault_dynamic_secrets">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-vault_5_vault_advanced_features" class="mb-12 section" data-section="vault_5_vault_advanced_features">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-vault_6_vault_production_setup" class="mb-12 section" data-section="vault_6_vault_production_setup">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-combined_1_nomad_consul" class="mb-12 section" data-section="combined_1_nomad_consul">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-combined_2_nomad_vault" class="mb-12 section" data-section="combined_2_nomad_vault">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-combined_3_consul_vault" class="mb-12 section" data-section="combined_3_consul_vault">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-combined_4_nomad_consul_vault" class="mb-12 section" data-section="combined_4_nomad_consul_vault">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-local_0_learning_flow" class="mb-12 section" data-section="local_0_learning_flow">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-local_1_quick_start" class="mb-12 section" data-section="local_1_quick_start">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-local_2_vault_basics" class="mb-12 section" data-section="local_2_vault_basics">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-local_3_consul_service_discovery" class="mb-12 section" data-section="local_3_consul_service_discovery">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-local_4_nomad_jobs" class="mb-12 section" data-section="local_4_nomad_jobs">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-local_5_full_integration" class="mb-12 section" data-section="local_5_full_integration">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-local_6_advanced_features" class="mb-12 section" data-section="local_6_advanced_features">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-local_7_production_considerations" class="mb-12 section" data-section="local_7_production_considerations">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-local_8_troubleshooting" class="mb-12 section" data-section="local_8_troubleshooting">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-local_9_sample_applications" class="mb-12 section" data-section="local_9_sample_applications">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-commands_reference" class="mb-12 section" data-section="commands_reference">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <div id="go-section-readme" class="mb-12 section" data-section="readme">
+                <div class="prose max-w-none">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script>
+        // Configure marked options
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (Prism.languages[lang]) {
+                    return Prism.highlight(code, Prism.languages[lang], lang);
+                }
+                return code;
+            },
+            langPrefix: 'language-',
+            breaks: true,
+            gfm: true
+        });
+
+        // Section mapping
+        const sectionMapping = {
+            'prerequisites_1_docker': '0_prerequisites/1_docker',
+            'prerequisites_2_linux': '0_prerequisites/2_linux',
+            'prerequisites_3_networking': '0_prerequisites/3_networking',
+            'prerequisites_4_container_orchestration': '0_prerequisites/4_container_orchestration',
+            'prerequisites_5_service_discovery_secrets': '0_prerequisites/5_service_discovery_secrets',
+            'nomad_1_nomad_basics': '1_nomad/1_nomad_basics',
+            'nomad_2_nomad_cli_and_api': '1_nomad/2_nomad_cli_and_api',
+            'nomad_3_nomad_job_types': '1_nomad/3_nomad_job_types',
+            'nomad_4_nomad_advanced_features': '1_nomad/4_nomad_advanced_features',
+            'nomad_5_nomad_production_setup': '1_nomad/5_nomad_production_setup',
+            'consul_1_consul_basics': '2_consul/1_consul_basics',
+            'consul_2_consul_service_discovery': '2_consul/2_consul_service_discovery',
+            'consul_3_consul_connect': '2_consul/3_consul_connect',
+            'consul_4_consul_advanced_features': '2_consul/4_consul_advanced_features',
+            'consul_5_consul_production_setup': '2_consul/5_consul_production_setup',
+            'vault_1_vault_basics': '3_vault/1_vault_basics',
+            'vault_2_vault_core_concepts': '3_vault/2_vault_core_concepts',
+            'vault_3_vault_cli_and_api': '3_vault/3_vault_cli_and_api',
+            'vault_4_vault_dynamic_secrets': '3_vault/4_vault_dynamic_secrets',
+            'vault_5_vault_advanced_features': '3_vault/5_vault_advanced_features',
+            'vault_6_vault_production_setup': '3_vault/6_vault_production_setup',
+            'combined_1_nomad_consul': '4_combined_use_cases/1_nomad_consul',
+            'combined_2_nomad_vault': '4_combined_use_cases/2_nomad_vault',
+            'combined_3_consul_vault': '4_combined_use_cases/3_consul_vault',
+            'combined_4_nomad_consul_vault': '4_combined_use_cases/4_nomad_consul_vault',
+            'local_0_learning_flow': '5_local_development/0_learning_flow',
+            'local_1_quick_start': '5_local_development/1_quick_start',
+            'local_2_vault_basics': '5_local_development/2_vault_basics',
+            'local_3_consul_service_discovery': '5_local_development/3_consul_service_discovery',
+            'local_4_nomad_jobs': '5_local_development/4_nomad_jobs',
+            'local_5_full_integration': '5_local_development/5_full_integration',
+            'local_6_advanced_features': '5_local_development/6_advanced_features',
+            'local_7_production_considerations': '5_local_development/7_production_considerations',
+            'local_8_troubleshooting': '5_local_development/8_troubleshooting',
+            'local_9_sample_applications': '5_local_development/9_sample_applications',
+            'commands_reference': 'commands_reference',
+            'readme': 'readme'
+        };
+
+        // Function to load markdown content
+        async function loadContent() {
+            for (const [sectionId, filePath] of Object.entries(sectionMapping)) {
+                await loadSection(sectionId, filePath);
+            }
+        }
+
+        // Function to load a single section
+        async function loadSection(sectionId, filePath) {
+            try {
+                console.log(`Loading section: ${sectionId} from file: ${filePath}.md`);
+                const response = await fetch(`${filePath}.md`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                const html = marked.parse(text);
+                const element = document.querySelector(`#go-section-${sectionId} .prose`);
+                
+                if (element) {
+                    element.innerHTML = html;
+                    Prism.highlightAll();
+                    console.log(`Successfully loaded: ${sectionId}`);
+                } else {
+                    console.error(`Element not found for section: ${sectionId}`);
+                }
+            } catch (error) {
+                console.error(`Error loading ${filePath}:`, error);
+                const element = document.querySelector(`#go-section-${sectionId} .prose`);
+                if (element) {
+                    element.innerHTML = 
+                        `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                            <strong>Error loading content:</strong> ${filePath}.md not found<br>
+                            <small>Error: ${error.message}</small>
+                        </div>`;
+                }
+            }
+        }
+
+        // Function to handle navigation clicks
+        function handleNavigationClick(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const sectionId = event.target.getAttribute('data-section');
+            const targetId = `go-section-${sectionId}`;
+            
+            console.log(`Navigating to section: ${sectionId} with target ID: ${targetId}`);
+            
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                // Remove any existing active states
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active-section');
+                });
+                
+                // Remove active states from navigation links
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.remove('active');
+                });
+                
+                // Add active state to target section
+                targetElement.classList.add('active-section');
+                
+                // Add active state to navigation link
+                event.target.classList.add('active');
+                
+                // Calculate scroll position
+                const headerHeight = 64;
+                const targetPosition = targetElement.offsetTop - headerHeight - 20;
+                
+                // Scroll to position
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+                
+                console.log(`Successfully navigated to: ${sectionId}`);
+            } else {
+                console.error(`Target element not found: ${targetId}`);
+            }
+            
+            // Close mobile menu if on mobile
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+            }
+            
+            return false;
+        }
+
+        // Function to update active navigation based on scroll position
+        function updateActiveNavigation() {
+            const sections = document.querySelectorAll('.section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const headerHeight = 64;
+            const scrollPosition = window.scrollY + headerHeight + 100;
+            
+            let activeSection = null;
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionBottom = sectionTop + section.offsetHeight;
+                
+                if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                    activeSection = section;
+                }
+            });
+            
+            // Remove active states from all navigation links
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Add active state to corresponding navigation link
+            if (activeSection) {
+                const sectionId = activeSection.getAttribute('data-section');
+                const activeLink = document.querySelector(`[data-section="${sectionId}"]`);
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+        }
+
+        // Throttled scroll handler for better performance
+        let scrollTimeout;
+        function throttledScrollHandler() {
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            scrollTimeout = setTimeout(updateActiveNavigation, 50);
+        }
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.querySelector('.mobile-menu-button');
+        const sidebar = document.querySelector('.sidebar');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+
+        // Add navigation click handlers
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', handleNavigationClick);
+        });
+
+        // Add scroll event listener to update active navigation
+        window.addEventListener('scroll', throttledScrollHandler);
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !mobileMenuButton.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
+
+        // Load content when page loads
+        document.addEventListener('DOMContentLoaded', loadContent);
+
+        // Initialize active navigation after content loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial active state after a short delay to ensure content is loaded
+            setTimeout(() => {
+                updateActiveNavigation();
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

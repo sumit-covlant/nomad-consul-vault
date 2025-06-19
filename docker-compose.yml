@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    image: nomad-consul-vault-learning-guide:v1
+    container_name: nomad-consul-vault--learning-guide-web
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped 
